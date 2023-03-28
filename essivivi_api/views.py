@@ -52,7 +52,8 @@ class LoginView(generics.GenericAPIView, ObtainAuthToken):
             'status':'invalid',
             'detail': 'Invalid credentials'
             }, 
-            status= status.HTTP_401_UNAUTHORIZED)
+            #status= status.HTTP_401_UNAUTHORIZED
+            )
 
 # Registration API View
 class RegisterView(generics.GenericAPIView):
@@ -178,6 +179,8 @@ class AgentDetail(APIView):
     """
     Retrieve, update or delete a snippet instance.
     """
+    queryset = Client.objects.all()
+    serializer_class = AgentSerializer()
     def get_object(self, pk):
         try:
             agent = User.objects.filter(gerant = pk)
@@ -212,6 +215,18 @@ class ListClient(generics.CreateAPIView):
     # # permission_classes = (permissions.IsAuthenticated)
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
+    def get(self, request):
+        clients = Client.objects.all()
+        serializer = ClientSerializer(clients, many = True)
+        return Response(serializer.data)
+    
+
+    def post(self, request):
+        serializer = ClientSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DetailClient(generics.RetrieveUpdateDestroyAPIView):
     # permission_classes = (permissions.IsAuthenticated)

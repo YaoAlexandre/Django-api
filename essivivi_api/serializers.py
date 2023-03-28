@@ -98,16 +98,29 @@ class UserAgentSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username",  "last_name", "first_name", "email", "is_agent"]
 
+class UserAgent(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "first_name"]
+
+
+class EauAgent(serializers.ModelSerializer):
+    class Meta:
+        model = Eau
+        fields = ["title"]
+
 
 # Agent Serializer
 class AgentSerializer(serializers.ModelSerializer):
+    #user = UserAgent()
+    #produit = EauAgent()
     class Meta:
         model = Agent
         fields = ["id", "user", "gerant_id", "produit", "nbr_eaux", "created_at"]
 
     def create(self, validated_data):
         produit_data = validated_data.get('produit')
-        prod = Eau.objects.get(id = produit_data.id)
+        prod = Eau.objects.get(title = produit_data.title)
         
         if validated_data.get('nbr_eaux') > 0:
             agent = Agent.objects.create(**validated_data)
@@ -147,15 +160,15 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def validate(self, args):
         email= args.get('email', '')
-        username = args.get('nom', '')
+        nom = args.get('nom', '')
         if Client.objects.filter(email = email).exists():
             raise serializers.ValidationError({'email': ('Email is already exists')})
-        if Client.objects.filter(username = username).exists():
+        if Client.objects.filter(nom = nom).exists():
             raise serializers.ValidationError({'nom': ('nom is already exists')})
         return super().validate(args)
 
     def create(self, validated_data):
-        return Client.objects.create_user(**validated_data)
+        return Client.objects.create(**validated_data)
 
 # User General serializer
 class UserSerializer(serializers.ModelSerializer):
@@ -165,7 +178,7 @@ class UserSerializer(serializers.ModelSerializer):
     clients = ClientSerializer(many = True)
     class Meta:
         model = User
-        fields = ["id", "last_name", "first_name", "email", "is_agent", "agents", "gerant", "clients", "eaux", "eauxRecue"]
+        fields = ["id", "last_name", "first_name", "email", "is_agent",  "is_manager", "agents", "gerant", "clients", "eaux", "eauxRecue"]
 
 
 # class UserAgentSerializer(serializers.ModelSerializer):
